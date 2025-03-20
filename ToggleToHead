@@ -47,6 +47,17 @@ game:GetService("UserInputService").InputBegan:Connect(function(input, gameProce
         toggleCameraAim()
     end
 end)
+wait(1)
+local TARGET_FOV = 85
+local RunService = game:GetService("RunService")
+
+RunService.RenderStepped:Connect(function()
+    if game.Workspace.CurrentCamera then
+        game.Workspace.CurrentCamera.FieldOfView = TARGET_FOV
+    end
+end)
+
+print("FOV changed to", TARGET_FOV)
 
 local runService = game:GetService("RunService")
 runService.RenderStepped:Connect(function()
