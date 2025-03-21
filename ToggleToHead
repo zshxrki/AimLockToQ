@@ -48,7 +48,7 @@ game:GetService("UserInputService").InputBegan:Connect(function(input, gameProce
     end
 end)
 wait(1)
-local TARGET_FOV = 85
+local TARGET_FOV = 95
 local RunService = game:GetService("RunService")
 
 RunService.RenderStepped:Connect(function()
