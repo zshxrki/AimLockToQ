@@ -1,16 +1,20 @@
 local cameraToggle = false
 local cameraTarget = nil
 
+-- Массив с названиями частей тела для R6
+local r6Parts = {"Head", "Torso", "Right Arm", "Left Arm", "Right Leg", "Left Leg"}
+
 local function findClosestPlayerToScreenCenter()
     local playerList = game.Players:GetPlayers()
-    local center = Vector2.new(workspace.CurrentCamera.ViewportSize.X / 2, workspace.CurrentCamera.ViewportSize.Y / 2)
+    local camera = workspace.CurrentCamera
+    local center = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
     local closestPlayer = nil
     local minDistance = math.huge
     local localPlayer = game.Players.LocalPlayer
 
     for _, player in pairs(playerList) do
         if player ~= localPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            local screenPos, onScreen = workspace.CurrentCamera:WorldToScreenPoint(player.Character.HumanoidRootPart.Position)
+            local screenPos, onScreen = camera:WorldToScreenPoint(player.Character.HumanoidRootPart.Position)
             
             if onScreen then
                 local distance = (center - Vector2.new(screenPos.X, screenPos.Y)).Magnitude
@@ -26,42 +30,28 @@ local function findClosestPlayerToScreenCenter()
 end
 
 local function aimCameraAtPlayer(player)
-    if player and player.Character and player.Character:FindFirstChild("Head") then
-        local camera = game.Workspace.CurrentCamera
-        local targetPosition = player.Character.Head.Position
-        camera.CFrame = CFrame.new(camera.CFrame.Position, targetPosition)
-    end
-end
+    if player and player.Character then
+        local camera = workspace.CurrentCamera
+        local center = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
+        
+        local closestPart = nil
+        local minDistance = math.huge
+        
+        -- Перебираем все части тела R6, чтобы найти ближайшую к центру экрана
+        for _, partName in pairs(r6Parts) do
+            local part = player.Character:FindFirstChild(partName)
+            if part then
+                local screenPos, onScreen = camera:WorldToScreenPoint(part.Position)
+                if onScreen then
+                    local distance = (center - Vector2.new(screenPos.X, screenPos.Y)).Magnitude
+                    if distance < minDistance then
+                        minDistance = distance
+                        closestPart = part
+                    end
+                end
+            end
+        end
 
-local function toggleCameraAim()
-    cameraToggle = not cameraToggle
-    if cameraToggle then
-        cameraTarget = findClosestPlayerToScreenCenter()
-    else
-        cameraTarget = nil
-    end
-end
-
-game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessedEvent)
-    if not gameProcessedEvent and input.KeyCode == Enum.KeyCode.Q then
-        toggleCameraAim()
-    end
-end)
-wait(1)
-local TARGET_FOV = 100
-local RunService = game:GetService("RunService")
-
-RunService.RenderStepped:Connect(function()
-    if game.Workspace.CurrentCamera then
-        game.Workspace.CurrentCamera.FieldOfView = TARGET_FOV
-    end
-end)
-
-print("FOV changed to", TARGET_FOV)
-
-local runService = game:GetService("RunService")
-runService.RenderStepped:Connect(function()
-    if cameraToggle and cameraTarget then
-        aimCameraAtPlayer(cameraTarget)
-    end
-end)
+        -- Если деталь найдена, наводим на неё камеру
+        if closestPart then
+            camera.
